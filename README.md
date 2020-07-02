@@ -1,2 +1,2 @@
 # dotnet-core-learn
-The way of my learn dotnet core
+The way of my learning of .net core
