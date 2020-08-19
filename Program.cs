@@ -9,6 +9,7 @@ namespace myapp
             Console.WriteLine("Hello World!");
             Console.WriteLine(6+4);
             Console.WriteLine("dotnetcore learn");
+            Console.WriteLine("learn way!");
         }
     }
 }
