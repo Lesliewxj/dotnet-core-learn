@@ -141,7 +141,7 @@ install_Moonglade()
     ls | grep -q Moonglade && rm ./Moonglade -rf
     mkdir Storage
     chmod -R 777 ~/Storage/
-    git clone -b master https://github.com/Lesliewxj/Moonglade2.git
+    git clone -b master https://github.com/Lesliewxj/Moonglade2.git  #this url is not work
 
     # Build the code
     echo 'Building the source code...'
