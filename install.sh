@@ -1,3 +1,14 @@
+enable_bbr()
+{
+    enable_bbr_force()
+    {
+        echo "BBR not enabled. Enabling BBR..."
+        echo 'net.core.default_qdisc=fq' | tee -a /etc/sysctl.conf
+        echo 'net.ipv4.tcp_congestion_control=bbr' | tee -a /etc/sysctl.conf
+        sysctl -p
+    }
+    sysctl net.ipv4.tcp_available_congestion_control | grep -q bbr ||  enable_bbr_force
+}
 
 set_production()
 {
@@ -70,6 +81,10 @@ register_service()
     Restart=always
     RestartSec=10
     KillSignal=SIGINT
+    Environment=\"ASPNETCORE_ENVIRONMENT=Production\"
+    Environment=\"DOTNET_PRINT_TELEMETRY_MESSAGE=false\"
+    Environment=\"DOTNET_CLI_TELEMETRY_OPTOUT=1\"
+    Environment=\"ASPNETCORE_FORWARDEDHEADERS_ENABLED=true\"
 
     [Install]
     WantedBy=multi-user.target" > /etc/systemd/system/$service_name.service
@@ -131,7 +146,7 @@ install_Moonglade()
     # Install basic packages
     echo "Installing git vim dotnet-sdk caddy mssql-server mssql-tools nodejs ufw libgdiplus..."
     add_source > /dev/null
-    ACCEPT_EULA=Y apt install -y apt-transport-https git vim dotnet-sdk-3.1 caddy mssql-server mssql-tools unixodbc-dev nodejs ufw libgdiplus > /dev/null
+    ACCEPT_EULA=Y apt install -y apt-transport-https git vim dotnet-sdk-5.0 caddy mssql-server mssql-tools unixodbc-dev nodejs ufw libgdiplus > /dev/null
 
     # Init database password
     MSSQL_SA_PASSWORD=$dbPassword MSSQL_PID='express' /opt/mssql/bin/mssql-conf -n setup accept-eula
@@ -141,13 +156,13 @@ install_Moonglade()
     ls | grep -q Moonglade && rm ./Moonglade -rf
     mkdir Storage
     chmod -R 777 ~/Storage/
-    git clone -b master https://github.com/Lesliewxj/Moonglade2.git  #this url is not work
+    git clone -b master https://github.com/EdiWang/Moonglade.git
 
     # Build the code
     echo 'Building the source code...'
     moonglade_path="$(pwd)/apps/moongladeApp"
     #rm ./Moonglade/src/Moonglade.Web/libman.json # Remove libman because it is easy to crash.
-    dotnet publish -c Release -o $moonglade_path ./Moonglade2/src/Moonglade.Web/Moonglade.Web.csproj
+    dotnet publish -c Release -o $moonglade_path -r linux-x64 /p:PublishReadyToRun=true --no-self-contained ./Moonglade/src/Moonglade.Web/Moonglade.Web.csproj
     rm ~/Moonglade -rf
     cat $moonglade_path/appsettings.json > $moonglade_path/appsettings.Production.json
 
@@ -182,6 +197,7 @@ install_Moonglade()
 
     # Finish the installation
     echo "Successfully installed Moonglade as a service in your machine! Please open https://$server to try it now!"
+    echo "Default management user name is `admin` and default password is `admin123`. Please open https://$server/admin to try it now!"
     echo "Successfully installed mssql as a service in your machine! The port is not opened so you can't connect!"
     echo "Successfully installed caddy as a service in your machine!"
     sleep 1
