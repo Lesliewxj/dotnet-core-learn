@@ -123,7 +123,7 @@ install_Moonglade()
     echo "Installing Moonglade to domain $server..."
 
     # Valid domain is required
-    if [[ $(curl -sL ifconfig.me) == "$(dig +short $server)" ]]; 
+    if [[ $(curl -s icanhazip.com) == "$(dig +short $server)" ]]; 
     then
         echo "IP is correct."
     else
